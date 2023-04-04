@@ -93,7 +93,8 @@ class Reflection
                         }
                         
                     }
-                    self::$class[$a] = $inst->newInstanceArgs($args);
+                    
+                    if(empty(self::$class[$a])) self::$class[$a] = $inst->newInstanceArgs($args);
 
                 } else {
                     if($inst->isInterface())  {
@@ -102,7 +103,7 @@ class Reflection
                         }
 
                     } else {
-                        self::$class[$a] = $inst->newInstanceArgs($args);
+                        if(empty(self::$class[$a])) self::$class[$a] = $inst->newInstanceArgs($args);
                     }
                     
                     $args[] = self::$class[$a];

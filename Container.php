@@ -94,7 +94,7 @@ class Container implements ContainerInterface, FactoryInterface
      * Get a container or factory
      * @param  string     $id   [description]
      * @param  array|null $args Is possible to overwrite/add __construct or method argumnets
-     * @return [type]           [description]
+     * @return mixed
      */
     public function get(string $id, ?array $args = NULL) 
     {
@@ -120,9 +120,10 @@ class Container implements ContainerInterface, FactoryInterface
             return $this->getter[$id];
 
         } else {
-            throw new NotFoundException("Error Processing Request", 1);
+            throw new NotFoundException("Tring to get a container ({$id}) that does not exists", 1);
         }
     }
+    
 
     /**
      * Fetch is used to load multiple container and factories at once with the help of a wildcard search
