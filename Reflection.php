@@ -68,17 +68,15 @@ class Reflection
      */
     private function injectRecursion(array $params, array $args = array()) 
     {
-
         $args = array();
         foreach($params AS $k => $param) {
-
-
             if($initClass = $param->getClass()) {
                 $a = $initClass->name;
                 $inst = new \ReflectionClass($a);
 
                 $p = array();
-                if(!$inst->isInterface()) $p = $inst->getConstructor()->getParameters();
+                $con = $inst->getConstructor();
+                if(!$inst->isInterface()) $p = ($con) ? $con->getParameters() : [];
 
                 if(count($p) > 0) {
                     $args = $this->injectRecursion($p, $args);
@@ -87,14 +85,12 @@ class Reflection
                     $args = array();
                     foreach($p as $p2) {
                         if($initClassB = $p2->getClass()) {
-
                             $a2 = $initClassB->name;
                             if(isset(self::$class[$a2])) $args[] = self::$class[$a2];
                         }
-                        
                     }
-                    
-                    if(empty(self::$class[$a])) self::$class[$a] = $inst->newInstanceArgs($args);
+
+                    if(empty(self::$class[$a])) self::$class[$a] = $this->newInstance($inst, (bool)$con, $args);
 
                 } else {
                     if($inst->isInterface())  {
@@ -103,16 +99,19 @@ class Reflection
                         }
 
                     } else {
-                        if(empty(self::$class[$a])) self::$class[$a] = $inst->newInstanceArgs($args);
+                        if(empty(self::$class[$a])) self::$class[$a] = $this->newInstance($inst, (bool)$con, $args);
                     }
                     
                     $args[] = self::$class[$a];
                 }
-
             }
         }
-
         return $args;
+    }
+
+    function newInstance($inst, bool $hasCon, array $args) {
+        if($hasCon) return $inst->newInstanceArgs($args);
+        return $inst->newInstance();
     }
    
     /**

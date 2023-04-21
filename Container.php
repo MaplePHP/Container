@@ -18,6 +18,11 @@ class Container implements ContainerInterface, FactoryInterface
     private $overwrite;
     private $getter = array();
 
+
+    function __call($a, $b) {
+        return $this->get($a);
+    }
+
     /**
      * Set a container OR factory
      * @param string       $id        Uniq identifier
@@ -167,5 +172,7 @@ class Container implements ContainerInterface, FactoryInterface
     {
         return ($this->args[$id] ?? NULL);
     }
+
+
 
 }
