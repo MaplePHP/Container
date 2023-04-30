@@ -13,7 +13,7 @@ class Reflection
     private $parameters;
 
 
-    private static $class;
+    private static $class = array();
     private static $interfaceFactory;
 
     /**
@@ -49,11 +49,11 @@ class Reflection
     {
         $params = $this->reflect->getConstructor()->getParameters();
         $this->injectRecursion($params);
-
+        
         $args = array();
         foreach($params as $param) {
-            if($initClass = $param->getClass()) {
-                $a = $initClass->name;
+            if($param->getType() && !$param->getType()->isBuiltin()) {
+                $a = $param->getType()->getName();
                 if(isset(self::$class[$a])) $args[] = self::$class[$a];
             }
         }
@@ -70,8 +70,8 @@ class Reflection
     {
         $args = array();
         foreach($params AS $k => $param) {
-            if($initClass = $param->getClass()) {
-                $a = $initClass->name;
+            if($param->getType() && !$param->getType()->isBuiltin()) {
+                $a = $param->getType()->getName();
                 $inst = new \ReflectionClass($a);
 
                 $p = array();
@@ -84,13 +84,12 @@ class Reflection
                     // Will make it posible to set same instance in multiple nested classes
                     $args = array();
                     foreach($p as $p2) {
-                        if($initClassB = $p2->getClass()) {
-                            $a2 = $initClassB->name;
+                        if($p2->getType() && !$p2->getType()->isBuiltin()) {
+                            $a2 = $p2->getType()->getName();
                             if(isset(self::$class[$a2])) $args[] = self::$class[$a2];
                         }
                     }
-
-                    if(empty(self::$class[$a])) self::$class[$a] = $this->newInstance($inst, (bool)$con, $args);
+                    if(empty(self::$class[$a])) self::$class[$a] = $this->newInstance($inst, (bool)$con, $args, $a);
 
                 } else {
                     if($inst->isInterface())  {
@@ -99,9 +98,8 @@ class Reflection
                         }
 
                     } else {
-                        if(empty(self::$class[$a])) self::$class[$a] = $this->newInstance($inst, (bool)$con, $args);
+                        if(empty(self::$class[$a])) self::$class[$a] = $this->newInstance($inst, (bool)$con, $args, $a);
                     }
-                    
                     $args[] = self::$class[$a];
                 }
             }
@@ -109,8 +107,15 @@ class Reflection
         return $args;
     }
 
-    function newInstance($inst, bool $hasCon, array $args) {
-        if($hasCon) return $inst->newInstanceArgs($args);
+    function newInstance($inst, bool $hasCon, array $args, $a) {
+        if($hasCon) {
+
+
+            
+            
+            
+            return $inst->newInstanceArgs($args);
+        }
         return $inst->newInstance();
     }
    
