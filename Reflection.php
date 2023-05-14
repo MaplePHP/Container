@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace PHPFuse\Container;
 
+use ReflectionClass;
+
 class Reflection
 {
     private $method;
-    
     private $reflect;
     private $args;
     private $parameters;
+    private $allowInterfaces = true;
 
 
     private static $class = array();
@@ -27,7 +29,7 @@ class Reflection
             $class = substr($data, 0, $pos);
             $this->method = substr($data, $pos+2);
         }
-        $this->reflect = new \ReflectionClass($class);        
+        $this->reflect = new ReflectionClass($class);
     }
 
     /**
@@ -39,6 +41,17 @@ class Reflection
         self::$interfaceFactory[] = function($class, $short, $reflect) use($call) {
             return $call($class, $short, $reflect);
         };
+    }
+
+    /**
+     * Allow interfaces
+     * @param  bool   $bool
+     * @return void
+     */
+    function allowInterfaces(bool $bool): void 
+    {
+        $this->allowInterfaces = $bool;
+
     }
 
     /**
@@ -72,7 +85,7 @@ class Reflection
         foreach($params AS $k => $param) {
             if($param->getType() && !$param->getType()->isBuiltin()) {
                 $a = $param->getType()->getName();
-                $inst = new \ReflectionClass($a);
+                $inst = new ReflectionClass($a);
 
                 $p = array();
                 $con = $inst->getConstructor();
@@ -89,16 +102,22 @@ class Reflection
                             if(isset(self::$class[$a2])) $args[] = self::$class[$a2];
                         }
                     }
-                    if(empty(self::$class[$a])) self::$class[$a] = $this->newInstance($inst, (bool)$con, $args, $a);
+                    if(empty(self::$class[$a])) self::$class[$a] = $this->newInstance($inst, (bool)$con, $args);
 
                 } else {
                     if($inst->isInterface())  {
-                        if(!is_null(self::$interfaceFactory)) {
-                            foreach(self::$interfaceFactory as $call) self::$class[$a] = $call($a, $inst->getShortName(), $inst);
+
+                        if($this->allowInterfaces) {
+                            if(!is_null(self::$interfaceFactory)) {
+                                foreach(self::$interfaceFactory as $call) self::$class[$a] = $call($a, $inst->getShortName(), $inst);
+                            }
+                            
+                        } else {
+                            self::$class[$a] = NULL;
                         }
 
                     } else {
-                        if(empty(self::$class[$a])) self::$class[$a] = $this->newInstance($inst, (bool)$con, $args, $a);
+                        if(empty(self::$class[$a])) self::$class[$a] = $this->newInstance($inst, (bool)$con, $args);
                     }
                     $args[] = self::$class[$a];
                 }
@@ -107,13 +126,15 @@ class Reflection
         return $args;
     }
 
-    function newInstance($inst, bool $hasCon, array $args, $a) {
+    /**
+     * Create a instance from reflection
+     * @param  ReflectionClass $inst
+     * @param  bool   $hasCon
+     * @param  array  $args
+     * @return  object
+     */
+    function newInstance(ReflectionClass $inst, bool $hasCon, array $args) {
         if($hasCon) {
-
-
-            
-            
-            
             return $inst->newInstanceArgs($args);
         }
         return $inst->newInstance();
@@ -158,6 +179,10 @@ class Reflection
             }
         }
         return $this->getClass();
+    }
+
+    static function getClassList() {
+        return self::$class;
     }
 
     /**
