@@ -6,7 +6,7 @@ namespace PHPFuse\Container;
 
 use PHPFuse\Container\Interfaces\ContainerInterface;
 use PHPFuse\Container\Interfaces\FactoryInterface;
-use PHPFuse\Output\Format\Arr;
+use PHPFuse\DTO\Format\Arr;
 use PHPFuse\Container\Reflection;
 use PHPFuse\Container\Exceptions\NotFoundException;
 use PHPFuse\Container\Exceptions\ContainerException;
