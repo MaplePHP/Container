@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PHPFuse\Container;
 
 use ReflectionClass;
+use PHPFuse\Container\Exceptions\NotFoundException;
 
 class Reflection
 {
@@ -61,7 +62,7 @@ class Reflection
     function dependencyInjector()
     {
         $params = $this->reflect->getConstructor()->getParameters();
-        $this->injectRecursion($params);
+        $this->injectRecursion($params, $this->reflect->getName());
         
         $args = array();
         foreach($params as $param) {
@@ -74,25 +75,43 @@ class Reflection
     }
 
     /**
+     * This will return reflection if class exist or error pointing to file where error existed,
+     * @param  string $className
+     * @param  string $fromClass
+     * @return ReflectionClass
+     */
+    private function initReclusiveReflect(string $className, string $fromClass): ReflectionClass {
+        try {
+           return new ReflectionClass($className);
+        } catch (\Exception $e) {
+            if(!class_exists($className)) {
+                throw new NotFoundException('Class "'.$className.'" does not exist in the class "'.$fromClass.'".', 1);
+            } else {
+                throw new \Exception($e->getMessage().'. You might want to check the file '.$fromClass.'.', 1);   
+            }
+        }
+    }
+
+    /**
      * Recursion inject dependancies 
      * @param  array  $params
      * @param  array  $args
      * @return array
      */
-    private function injectRecursion(array $params, array $args = array()) 
+    private function injectRecursion(array $params, string $fromClass, array $args = array()) 
     {
         $args = array();
         foreach($params AS $k => $param) {
             if($param->getType() && !$param->getType()->isBuiltin()) {
                 $a = $param->getType()->getName();
-                $inst = new ReflectionClass($a);
+                $inst = $this->initReclusiveReflect($a, $fromClass);
 
                 $p = array();
                 $con = $inst->getConstructor();
                 if(!$inst->isInterface()) $p = ($con) ? $con->getParameters() : [];
 
                 if(count($p) > 0) {
-                    $args = $this->injectRecursion($p, $args);
+                    $args = $this->injectRecursion($p, $inst->getName(), $args);
 
                     // Will make it posible to set same instance in multiple nested classes
                     $args = array();
