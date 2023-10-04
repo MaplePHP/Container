@@ -18,6 +18,7 @@ class Reflection
 
     private static $class = array();
     private static $interfaceFactory;
+    private static $interfaceProtocol;
 
     /**
      * Start relection of a class or method
@@ -40,6 +41,7 @@ class Reflection
     public static function interfaceFactory($call): void
     {
         self::$interfaceFactory[] = function($class, $short, $reflect) use($call) {
+            // self::$interfaceProtocol[$short] = $call($class, $short, $reflect);
             return $call($class, $short, $reflect);
         };
     }
@@ -104,6 +106,8 @@ class Reflection
         foreach($params AS $k => $param) {
             if($param->getType() && !$param->getType()->isBuiltin()) {
                 $a = $param->getType()->getName();
+
+                
                 $inst = $this->initReclusiveReflect($a, $fromClass);
 
                 $p = array();
