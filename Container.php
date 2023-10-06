@@ -109,7 +109,7 @@ class Container implements ContainerInterface, FactoryInterface
 
             if(empty($this->getter[$id])) {
                 if(($service instanceof \Closure)) {
-                    $this->getter[$id] = $service();
+                    $this->getter[$id] = $service(...$args);
                     
                 } else {
                     if(is_string($service)) {
