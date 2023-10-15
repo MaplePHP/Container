@@ -20,7 +20,7 @@ class Container implements ContainerInterface, FactoryInterface
 
 
     function __call($a, $b) {
-        return $this->get($a);
+        return $this->get($a, $b);
     }
 
     /**
@@ -98,20 +98,19 @@ class Container implements ContainerInterface, FactoryInterface
     /**
      * Get a container or factory
      * @param  string     $id   [description]
-     * @param  array|null $args Is possible to overwrite/add __construct or method argumnets
+     * @param  array $args Is possible to overwrite/add __construct or method argumnets
      * @return mixed
      */
-    public function get(string $id, ?array $args = NULL) 
+    public function get(string $id, array $args = []) 
     {
         if($service = $this->getService($id)) {
-
             if(is_null($args)) $args = $this->getArgs($id);
 
-            if(empty($this->getter[$id])) {
-                if(($service instanceof \Closure)) {
-                    $this->getter[$id] = $service(...$args);
-                    
-                } else {
+            if(($service instanceof \Closure)) {
+                $this->getter[$id] = $service(...$args);
+                
+            } else {
+                if(empty($this->getter[$id])) {
                     if(is_string($service)) {
                         $reflect = new Reflection($service);
                         if(!is_null($args)) $reflect->setArgs($args);
@@ -121,6 +120,7 @@ class Container implements ContainerInterface, FactoryInterface
                     }
                 }
             }
+    
             
             return $this->getter[$id];
 
