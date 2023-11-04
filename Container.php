@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 
 declare(strict_types=1);
 
@@ -19,25 +20,32 @@ class Container implements ContainerInterface, FactoryInterface
     private $getter = array();
 
 
-    function __call($a, $b) {
+    public function __call($a, $b)
+    {
         return $this->get($a, $b);
     }
 
     /**
      * Set a container OR factory
      * @param string       $id        Uniq identifier
-     * @param mixed        $value     Example: TestClasses\Test::class, TestClasses\Test::class."::__construct", TestClasses\Test::class."::getStaticMethod",
+     * @param mixed        $value     Example:
+     *                                TestClasses\Test::class,
+     *                                TestClasses\Test::class."::__construct",
+     *                                TestClasses\Test::class."::getStaticMethod",
      * @param array|null   $args      Pass argumnets to constructor staticMethod if you choose.
      * @param bool|boolean $overwrite Will throw exception if already been defined if not arg is set to TRUE.
      */
-    public function set(string $id, $value, ?array $args = NULL, bool $overwrite = false): ContainerInterface 
+    public function set(string $id, $value, ?array $args = null, bool $overwrite = false): ContainerInterface
     {
-        if(!$overwrite && $this->has($id)) {
+        if (!$overwrite && $this->has($id)) {
             $type = ($this->isFactory($id)) ? "factory" : "container";
-            throw new ContainerException("The {$type} ({$id}) has already been defined. If you want to overwrite the {$type} then set overwrite argument to true.", 1);
+            throw new ContainerException("The {$type} ({$id}) has already been defined. If you want to overwrite ".
+                "the {$type} then set overwrite argument to true.", 1);
         }
 
-        if(isset($this->getter[$id])) unset($this->getter[$id]);
+        if (isset($this->getter[$id])) {
+            unset($this->getter[$id]);
+        }
         $this->services[$id] = $value;
         $this->args[$id] = $args;
         return $this;
@@ -50,17 +58,22 @@ class Container implements ContainerInterface, FactoryInterface
      * @param  bool|boolean $overwrite Will throw exception if already been defined if not arg is set to TRUE.
      * @return void
      */
-    public function factory(string $id, callable $factory, bool $overwrite = false): ContainerInterface 
+    public function factory(string $id, callable $factory, bool $overwrite = false): ContainerInterface
     {
-        if(!$overwrite && $this->has($id)) {
-            if(!$this->isFactory($id)) {
-                throw new ContainerException("({$id}) Has already been defined, but has been defined as a container and not factory. If you want to overwrite the container as factory then set overwrite argument to true.", 1);
+        if (!$overwrite && $this->has($id)) {
+            if (!$this->isFactory($id)) {
+                throw new ContainerException("({$id}) Has already been defined, but has been defined as a ".
+                    "container and not factory. If you want to overwrite the container as factory then set ".
+                    "overwrite argument to true.", 1);
             } else {
-                throw new ContainerException("The factory ({$id}) has already been defined. If you want to overwrite the factory then set overwrite argument to true.", 1);
+                throw new ContainerException("The factory ({$id}) has already been defined. If you want to ".
+                    "overwrite the factory then set overwrite argument to true.", 1);
             }
         }
 
-        if(isset($this->getter[$id])) unset($this->getter[$id]);
+        if (isset($this->getter[$id])) {
+            unset($this->getter[$id]);
+        }
         $this->services[$id] = $factory;
         return $this;
     }
@@ -70,7 +83,7 @@ class Container implements ContainerInterface, FactoryInterface
      * @param  string  $id
      * @return boolean
      */
-    public function has(string $id): bool 
+    public function has(string $id): bool
     {
         return (bool)($this->getService($id));
     }
@@ -80,7 +93,7 @@ class Container implements ContainerInterface, FactoryInterface
      * @param  string  $id Uniq identifier
      * @return boolean
      */
-    function isFactory(string $id) 
+    public function isFactory(string $id)
     {
         return (bool)($this->getService($id) instanceof \Closure);
     }
@@ -90,7 +103,7 @@ class Container implements ContainerInterface, FactoryInterface
      * @param  string  $id Uniq identifier
      * @return boolean
      */
-    function isContainer($id) 
+    public function isContainer($id)
     {
         return (bool)(!$this->isFactory($id));
     }
@@ -101,34 +114,36 @@ class Container implements ContainerInterface, FactoryInterface
      * @param  array $args Is possible to overwrite/add __construct or method argumnets
      * @return mixed
      */
-    public function get(string $id, array $args = []) 
+    public function get(string $id, array $args = [])
     {
-        if($service = $this->getService($id)) {
-            if(is_null($args)) $args = $this->getArgs($id);
+        if ($service = $this->getService($id)) {
+            if (is_null($args)) {
+                $args = $this->getArgs($id);
+            }
 
-            if(($service instanceof \Closure)) {
+            if (($service instanceof \Closure)) {
                 $this->getter[$id] = $service(...$args);
-                
             } else {
-                if(empty($this->getter[$id])) {
-                    if(is_string($service)) {
+                if (empty($this->getter[$id])) {
+                    if (is_string($service)) {
                         $reflect = new Reflection($service);
-                        if(!is_null($args)) $reflect->setArgs($args);
+                        if (!is_null($args)) {
+                            $reflect->setArgs($args);
+                        }
                         $this->getter[$id] = $reflect->get();
                     } else {
                         $this->getter[$id] = $service;
                     }
                 }
             }
-    
-            
-            return $this->getter[$id];
 
+
+            return $this->getter[$id];
         } else {
             throw new NotFoundException("Tring to get a container ({$id}) that does not exists", 1);
         }
     }
-    
+
 
     /**
      * Fetch is used to load multiple container and factories at once with the help of a wildcard search
@@ -140,12 +155,12 @@ class Container implements ContainerInterface, FactoryInterface
      */
     public function fetch(string $id)
     {
-        if(strpos($id, "*") !== false) {
+        if (strpos($id, "*") !== false) {
             $arr = Arr::value($this->services)->wildcardSearch($id)->get();
-            if(count($arr) > 0) {
+            if (count($arr) > 0) {
                 $new = array();
-                foreach($arr as $key => $value) {
-                    $new[$key] = $this->get($key);         
+                foreach ($arr as $key => $value) {
+                    $new[$key] = $this->get($key);
                 }
                 return $new;
             }
@@ -158,9 +173,9 @@ class Container implements ContainerInterface, FactoryInterface
      * @param  string $id
      * @return array|null
      */
-    private function getService(string $id) 
+    private function getService(string $id)
     {
-        return ($this->services[$id] ?? NULL);
+        return ($this->services[$id] ?? null);
     }
 
     /**
@@ -168,11 +183,8 @@ class Container implements ContainerInterface, FactoryInterface
      * @param  string $id
      * @return array|null
      */
-    private function getArgs(string $id) 
+    private function getArgs(string $id)
     {
-        return ($this->args[$id] ?? NULL);
+        return ($this->args[$id] ?? null);
     }
-
-
-
 }

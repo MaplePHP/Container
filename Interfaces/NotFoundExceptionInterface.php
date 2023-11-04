@@ -2,7 +2,6 @@
 
 namespace PHPFuse\Container\Interfaces;
 
-
 /**
  * No entry was found in the container.
  */

@@ -8,6 +8,6 @@ use PHPFuse\Container\Interfaces\ContainerExceptionInterface;
 /**
  * Base interface representing a generic exception in a container.
  */
-class ContainerException extends InvalidArgumentException implements ContainerExceptionInterface 
+class ContainerException extends InvalidArgumentException implements ContainerExceptionInterface
 {
 }

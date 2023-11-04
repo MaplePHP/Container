@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PHPFuse\Container\Interfaces;
 
-
 /**
  * The Factory Container Interface.
  */
