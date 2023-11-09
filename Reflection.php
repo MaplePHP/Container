@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace PHPFuse\Container;
 
 use ReflectionClass;
+use ReflectionMethod;
 use PHPFuse\Container\Exceptions\NotFoundException;
 
 class Reflection
@@ -13,13 +14,12 @@ class Reflection
     private $method;
     private $reflect;
     private $args;
-    private $parameters;
     private $allowInterfaces = true;
 
 
     private static $class = array();
     private static $interfaceFactory;
-    private static $interfaceProtocol;
+    //private static $interfaceProtocol;
 
     /**
      * Start relection of a class or method
@@ -42,9 +42,9 @@ class Reflection
      */
     public static function interfaceFactory($call): void
     {
-        self::$interfaceFactory[] = function ($class, $short, $reflect) use ($call) {
-            // self::$interfaceProtocol[$short] = $call($class, $short, $reflect);
-            return $call($class, $short, $reflect);
+        self::$interfaceFactory[] = function ($short, $class, $reflect) use ($call) {
+            //self::$interfaceProtocol[$short] = $call($class, $short, $reflect);
+            return $call($short, $class, $reflect);
         };
     }
 
@@ -70,9 +70,9 @@ class Reflection
         $args = array();
         foreach ($params as $param) {
             if ($param->getType() && !$param->getType()->isBuiltin()) {
-                $a = $param->getType()->getName();
-                if (isset(self::$class[$a])) {
-                    $args[] = self::$class[$a];
+                $classKey = $param->getType()->getName();
+                if (isset(self::$class[$classKey])) {
+                    $args[] = self::$class[$classKey];
                 }
             }
         }
@@ -107,54 +107,81 @@ class Reflection
     private function injectRecursion(array $params, string $fromClass, array $args = array())
     {
         $args = array();
-        foreach ($params as $k => $param) {
+        foreach ($params as $param) {
             if ($param->getType() && !$param->getType()->isBuiltin()) {
-                $a = $param->getType()->getName();
+                $classNameA = $param->getType()->getName();
 
-
-                $inst = $this->initReclusiveReflect($a, $fromClass);
-
-                $p = array();
-                $con = $inst->getConstructor();
+                $inst = $this->initReclusiveReflect($classNameA, $fromClass);
+                $reflectParam = array();
+                $constructor = $inst->getConstructor();
                 if (!$inst->isInterface()) {
-                    $p = ($con) ? $con->getParameters() : [];
+                    $reflectParam = ($constructor) ? $constructor->getParameters() : [];
                 }
 
-                if (count($p) > 0) {
-                    $args = $this->injectRecursion($p, $inst->getName(), $args);
+                if (count($reflectParam) > 0) {
+                    $args = $this->injectRecursion($reflectParam, $inst->getName(), $args);
 
                     // Will make it posible to set same instance in multiple nested classes
-                    $args = array();
-                    foreach ($p as $p2) {
-                        if ($p2->getType() && !$p2->getType()->isBuiltin()) {
-                            $a2 = $p2->getType()->getName();
-                            if (isset(self::$class[$a2])) {
-                                $args[] = self::$class[$a2];
-                            }
-                        }
-                    }
-                    if (empty(self::$class[$a])) {
-                        self::$class[$a] = $this->newInstance($inst, (bool)$con, $args);
-                    }
+                    $args = $this->insertMultipleNestedClasses($inst, $constructor, $classNameA, $reflectParam);
                 } else {
                     if ($inst->isInterface()) {
-                        if ($this->allowInterfaces) {
-                            if (!is_null(self::$interfaceFactory)) {
-                                foreach (self::$interfaceFactory as $call) {
-                                    self::$class[$a] = $call($a, $inst->getShortName(), $inst);
-                                }
-                            }
-                        } else {
-                            self::$class[$a] = null;
-                        }
+                        $this->insertInterfaceClasses($inst, $classNameA);
                     } else {
-                        if (empty(self::$class[$a])) {
-                            self::$class[$a] = $this->newInstance($inst, (bool)$con, $args);
+                        if (empty(self::$class[$classNameA])) {
+                            self::$class[$classNameA] = $this->newInstance($inst, (bool)$constructor, $args);
                         }
                     }
-                    $args[] = self::$class[$a];
+                    $args[] = self::$class[$classNameA];
                 }
             }
+        }
+        return $args;
+    }
+
+    /**
+     * Will insert interface classes (the defualt classes)
+     * @param  ReflectionClass $inst
+     * @param  string          $classNameA
+     * @return void
+     */
+    private function insertInterfaceClasses(ReflectionClass $inst, string $classNameA): void
+    {
+        if ($this->allowInterfaces) {
+            if (!is_null(self::$interfaceFactory)) {
+                foreach (self::$interfaceFactory as $call) {
+                    self::$class[$classNameA] = $call($inst->getShortName(), $classNameA, $inst);
+                }
+            }
+        } else {
+            self::$class[$classNameA] = null;
+        }
+    }
+
+    /**
+     * Will make it posible to set same instance in multiple nested classes
+     * @param  ReflectionClass  $inst
+     * @param  ReflectionMethod $constructor
+     * @param  string           $classNameA
+     * @param  array            $reflectParam
+     * @return array
+     */
+    private function insertMultipleNestedClasses(
+        ReflectionClass $inst,
+        ReflectionMethod $constructor,
+        string $classNameA,
+        array $reflectParam
+    ): array {
+        $args = array();
+        foreach ($reflectParam as $reflectInstance) {
+            if ($reflectInstance->getType() && !$reflectInstance->getType()->isBuiltin()) {
+                $classNameB = $reflectInstance->getType()->getName();
+                if (isset(self::$class[$classNameB])) {
+                    $args[] = self::$class[$classNameB];
+                }
+            }
+        }
+        if (empty(self::$class[$classNameA])) {
+            self::$class[$classNameA] = $this->newInstance($inst, (bool)$constructor, $args);
         }
         return $args;
     }
