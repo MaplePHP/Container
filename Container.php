@@ -1,6 +1,5 @@
 <?php
 
-
 declare(strict_types=1);
 
 namespace PHPFuse\Container;
@@ -39,7 +38,7 @@ class Container implements ContainerInterface, FactoryInterface
     {
         if (!$overwrite && $this->has($identifier)) {
             $type = ($this->isFactory($identifier)) ? "factory" : "container";
-            throw new ContainerException("The {$type} ({$identifier}) has already been defined. If you want to overwrite ".
+            throw new ContainerException("The {$type} ({$identifier}) has already been defined. If you want to overwrite " .
                 "the {$type} then set overwrite argument to true.", 1);
         }
 
@@ -62,11 +61,11 @@ class Container implements ContainerInterface, FactoryInterface
     {
         if (!$overwrite && $this->has($identifier)) {
             if (!$this->isFactory($identifier)) {
-                throw new ContainerException("({$identifier}) Has already been defined, but has been defined as a ".
-                    "container and not factory. If you want to overwrite the container as factory then set ".
+                throw new ContainerException("({$identifier}) Has already been defined, but has been defined as a " .
+                    "container and not factory. If you want to overwrite the container as factory then set " .
                     "overwrite argument to true.", 1);
             } else {
-                throw new ContainerException("The factory ({$identifier}) has already been defined. If you want to ".
+                throw new ContainerException("The factory ({$identifier}) has already been defined. If you want to " .
                     "overwrite the factory then set overwrite argument to true.", 1);
             }
         }

@@ -1,6 +1,5 @@
 <?php
 
-
 declare(strict_types=1);
 
 namespace PHPFuse\Container;
@@ -91,9 +90,9 @@ class Reflection
             return new ReflectionClass($className);
         } catch (\Exception $e) {
             if (!class_exists($className)) {
-                throw new NotFoundException('Class "'.$className.'" does not exist in the class "'.$fromClass.'".', 1);
+                throw new NotFoundException('Class "' . $className . '" does not exist in the class "' . $fromClass . '".', 1);
             } else {
-                throw new \Exception($e->getMessage().'. You might want to check the file '.$fromClass.'.', 1);
+                throw new \Exception($e->getMessage() . '. You might want to check the file ' . $fromClass . '.', 1);
             }
         }
     }
