@@ -37,9 +37,10 @@ class Reflection
     /**
      * If the dependency injector tries to read an interface in controller it
      * will search for the object in interfaceFactory.
-     * @return controller
+     * @param callable $call
+     * @return void
      */
-    public static function interfaceFactory($call): void
+    public static function interfaceFactory(callable $call): void
     {
         self::$interfaceFactory[] = function ($short, $class, $reflect) use ($call) {
             //self::$interfaceProtocol[$short] = $call($class, $short, $reflect);
@@ -59,9 +60,9 @@ class Reflection
 
     /**
      * Call dependency injector
-     * @return controller
+     * @return object
      */
-    public function dependencyInjector()
+    public function dependencyInjector(): object
     {
         $params = $this->reflect->getConstructor()->getParameters();
         $this->injectRecursion($params, $this->reflect->getName());
@@ -99,13 +100,14 @@ class Reflection
 
     /**
      * Recursion inject dependancies
-     * @param  array  $params
-     * @param  array  $args
+     * @param  array    $params
+     * @param  string   $fromClass
+     * @param  array    $_args
      * @return array
      */
-    private function injectRecursion(array $params, string $fromClass, array $args = array())
+    private function injectRecursion(array $params, string $fromClass, array $_args = array()): array
     {
-        $args = array();
+        $_args = array();
         foreach ($params as $param) {
             if ($param->getType() && !$param->getType()->isBuiltin()) {
                 $classNameA = $param->getType()->getName();
@@ -118,23 +120,23 @@ class Reflection
                 }
 
                 if (count($reflectParam) > 0) {
-                    $args = $this->injectRecursion($reflectParam, $inst->getName(), $args);
+                    $_args = $this->injectRecursion($reflectParam, $inst->getName(), $_args);
 
                     // Will make it posible to set same instance in multiple nested classes
-                    $args = $this->insertMultipleNestedClasses($inst, $constructor, $classNameA, $reflectParam);
+                    $_args = $this->insertMultipleNestedClasses($inst, $constructor, $classNameA, $reflectParam);
                 } else {
                     if ($inst->isInterface()) {
                         $this->insertInterfaceClasses($inst, $classNameA);
                     } else {
                         if (empty(self::$class[$classNameA])) {
-                            self::$class[$classNameA] = $this->newInstance($inst, (bool)$constructor, $args);
+                            self::$class[$classNameA] = $this->newInstance($inst, (bool)$constructor, $_args);
                         }
                     }
-                    $args[] = self::$class[$classNameA];
+                    $_args[] = self::$class[$classNameA];
                 }
             }
         }
-        return $args;
+        return $_args;
     }
 
     /**
@@ -252,9 +254,9 @@ class Reflection
 
     /**
      * Load dependencyInjector / or just a container
-     * @return instance
+     * @return object
      */
-    private function getClass()
+    private function getClass(): object
     {
         if (!is_null($this->args)) {
             $inst = $this->reflect->newInstanceArgs($this->args);

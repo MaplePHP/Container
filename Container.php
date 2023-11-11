@@ -125,6 +125,7 @@ class Container implements ContainerInterface, FactoryInterface
             } else {
                 if (empty($this->getter[$identifier])) {
                     if (is_string($service)) {
+                        /** @var string $service */
                         $reflect = new Reflection($service);
                         if (!is_null($args)) {
                             $reflect->setArgs($args);
@@ -135,8 +136,6 @@ class Container implements ContainerInterface, FactoryInterface
                     }
                 }
             }
-
-
             return $this->getter[$identifier];
         } else {
             throw new NotFoundException("Tring to get a container ({$identifier}) that does not exists", 1);
@@ -158,7 +157,7 @@ class Container implements ContainerInterface, FactoryInterface
             $arr = Arr::value($this->services)->wildcardSearch($identifier)->get();
             if (count($arr) > 0) {
                 $new = array();
-                foreach ($arr as $key => $unusedValues) {
+                foreach ($arr as $key => $_unusedValues) {
                     $new[$key] = $this->get($key);
                 }
                 return $new;
