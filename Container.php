@@ -26,13 +26,13 @@ class Container implements ContainerInterface, FactoryInterface
 
     /**
      * Set a container OR factory
-     * @param string       $identifier        Uniq identifier
-     * @param mixed        $value     Example:
-     *                                TestClasses\Test::class,
-     *                                TestClasses\Test::class."::__construct",
-     *                                TestClasses\Test::class."::getStaticMethod",
-     * @param array|null   $args      Pass argumnets to constructor staticMethod if you choose.
-     * @param bool|boolean $overwrite Will throw exception if already been defined if not arg is set to TRUE.
+     * @param string       $identifier  Uniq identifier
+     * @param mixed        $value       Example:
+     *                                  TestClasses\Test::class,
+     *                                  TestClasses\Test::class."::__construct",
+     *                                  TestClasses\Test::class."::getStaticMethod",
+     * @param array|null   $args        Pass argumnets to constructor staticMethod if you choose.
+     * @param bool|boolean $overwrite   Will throw exception if already been defined if not arg is set to TRUE.
      */
     public function set(string $identifier, $value, ?array $args = null, bool $overwrite = false): ContainerInterface
     {
@@ -55,9 +55,9 @@ class Container implements ContainerInterface, FactoryInterface
      * @param  string       $identifier Uniq identifier
      * @param  callable     $factory
      * @param  bool|boolean $overwrite Will throw exception if already been defined if not arg is set to TRUE.
-     * @return void
+     * @return self
      */
-    public function factory(string $identifier, callable $factory, bool $overwrite = false): ContainerInterface
+    public function factory(string $identifier, callable $factory, bool $overwrite = false): self
     {
         if (!$overwrite && $this->has($identifier)) {
             if (!$this->isFactory($identifier)) {
@@ -94,7 +94,7 @@ class Container implements ContainerInterface, FactoryInterface
      */
     public function isFactory(string $identifier)
     {
-        return (bool)($this->getService($identifier) instanceof \Closure);
+        return ($this->getService($identifier) instanceof \Closure);
     }
 
     /**
@@ -104,7 +104,7 @@ class Container implements ContainerInterface, FactoryInterface
      */
     public function isContainer($identifier)
     {
-        return (bool)(!$this->isFactory($identifier));
+        return (!$this->isFactory($identifier));
     }
 
     /**
@@ -113,21 +113,20 @@ class Container implements ContainerInterface, FactoryInterface
      * @param  array $args Is possible to overwrite/add __construct or method argumnets
      * @return mixed
      */
-    public function get(string $identifier, array $args = [])
+    public function get(string $identifier, array $args = []): mixed
     {
         if ($service = $this->getService($identifier)) {
-            if (is_null($args)) {
+            if (count($args) === 0) {
                 $args = $this->getArgs($identifier);
             }
-
-            if (($service instanceof \Closure)) {
+            if ($this->isFactory($identifier)) {
                 $this->getter[$identifier] = $service(...$args);
             } else {
                 if (empty($this->getter[$identifier])) {
+                    /** @var string $service */
                     if (is_string($service)) {
-                        /** @var string $service */
                         $reflect = new Reflection($service);
-                        if (!is_null($args)) {
+                        if (count($args) > 0) {
                             $reflect->setArgs($args);
                         }
                         $this->getter[$identifier] = $reflect->get();
@@ -179,10 +178,10 @@ class Container implements ContainerInterface, FactoryInterface
     /**
      * Get arguments
      * @param  string $identifier
-     * @return array|null
+     * @return array
      */
-    private function getArgs(string $identifier)
+    private function getArgs(string $identifier): array
     {
-        return ($this->args[$identifier] ?? null);
+        return ($this->args[$identifier] ?? []);
     }
 }

@@ -19,7 +19,7 @@ interface ContainerInterface
      *
      * @return mixed Entry.
      */
-    public function get(string $identifier);
+    public function get(string $identifier, array $args = []): mixed;
 
     /**
      * Returns true if the container can return an entry for the given identifier.
@@ -33,4 +33,17 @@ interface ContainerInterface
      * @return bool
      */
     public function has(string $identifier): bool;
+
+
+    /**
+     * Set a container OR factory
+     * @param string       $identifier  Uniq identifier
+     * @param mixed        $value       Example:
+     *                                  TestClasses\Test::class,
+     *                                  TestClasses\Test::class."::__construct",
+     *                                  TestClasses\Test::class."::getStaticMethod",
+     * @param array|null   $args        Pass argumnets to constructor staticMethod if you choose.
+     * @param bool|boolean $overwrite   Will throw exception if already been defined if not arg is set to TRUE.
+     */
+    public function set(string $identifier, $value, ?array $args = null, bool $overwrite = false): ContainerInterface;
 }
