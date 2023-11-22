@@ -123,8 +123,7 @@ class Container implements ContainerInterface, FactoryInterface
                 $this->getter[$identifier] = $service(...$args);
             } else {
                 if (empty($this->getter[$identifier])) {
-                    /** @var string $service */
-                    if (is_string($service)) {
+                    if (is_string($service) && class_exists($service)) {
                         $reflect = new Reflection($service);
                         if (count($args) > 0) {
                             $reflect->setArgs($args);
@@ -168,9 +167,9 @@ class Container implements ContainerInterface, FactoryInterface
     /**
      * Get services
      * @param  string $identifier
-     * @return array|null
+     * @return mixed
      */
-    private function getService(string $identifier)
+    private function getService(string $identifier): mixed
     {
         return ($this->services[$identifier] ?? null);
     }

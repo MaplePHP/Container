@@ -22,16 +22,20 @@ class Reflection
 
     /**
      * Start relection of a class or method
-     * @param string|object $data
+     * @param class-string|object $classData
      */
-    public function __construct($data)
+    public function __construct(string|object $classData)
     {
-        $class = $data;
-        if (is_string($data) && ($pos = strpos($data, "::")) !== false) {
-            $class = substr($data, 0, $pos);
-            $this->method = substr($data, $pos + 2);
+        if (is_string($classData)) {
+            if (($pos = strpos($classData, "::")) !== false) {
+                $classData = substr($classData, 0, $pos);
+                $this->method = substr($classData, $pos + 2);
+            }
+            if (!class_exists($classData)) {
+                throw new NotFoundException("Could not find the class \"{$classData}\".", 1);
+            }
         }
-        $this->reflect = new ReflectionClass($class);
+        $this->reflect = new ReflectionClass($classData);
     }
 
     /**
@@ -81,8 +85,8 @@ class Reflection
 
     /**
      * This will return reflection if class exist or error pointing to file where error existed,
-     * @param  string $className
-     * @param  string $fromClass
+     * @param  class-string $className
+     * @param  class-string $fromClass
      * @return ReflectionClass
      */
     private function initReclusiveReflect(string $className, string $fromClass): ReflectionClass
@@ -100,9 +104,9 @@ class Reflection
 
     /**
      * Recursion inject dependancies
-     * @param  array    $params
-     * @param  string   $fromClass
-     * @param  array    $_args
+     * @param  array        $params
+     * @param  class-string $fromClass
+     * @param  array        $_args
      * @return array
      */
     private function injectRecursion(array $params, string $fromClass, array $_args = array()): array
@@ -111,7 +115,6 @@ class Reflection
         foreach ($params as $param) {
             if ($param->getType() && !$param->getType()->isBuiltin()) {
                 $classNameA = $param->getType()->getName();
-
                 $inst = $this->initReclusiveReflect($classNameA, $fromClass);
                 $reflectParam = array();
                 $constructor = $inst->getConstructor();
@@ -160,15 +163,15 @@ class Reflection
 
     /**
      * Will make it posible to set same instance in multiple nested classes
-     * @param  ReflectionClass  $inst
-     * @param  ReflectionMethod $constructor
-     * @param  string           $classNameA
-     * @param  array            $reflectParam
+     * @param  ReflectionClass       $inst
+     * @param  ReflectionMethod|null $constructor
+     * @param  string                $classNameA
+     * @param  array                 $reflectParam
      * @return array
      */
     private function insertMultipleNestedClasses(
         ReflectionClass $inst,
-        ReflectionMethod $constructor,
+        ?ReflectionMethod $constructor,
         string $classNameA,
         array $reflectParam
     ): array {
