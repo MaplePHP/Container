@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPFuse\Container\Interfaces;
+namespace MaplePHP\Container\Interfaces;
 
 /**
  * The Factory Container Interface.

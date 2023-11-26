@@ -1,8 +1,8 @@
 <?php
 
-namespace PHPFuse\Container\Exceptions;
+namespace MaplePHP\Container\Exceptions;
 
-use PHPFuse\Container\Interfaces\NotFoundExceptionInterface;
+use MaplePHP\Container\Interfaces\NotFoundExceptionInterface;
 use RuntimeException;
 
 /**

@@ -1,13 +1,13 @@
 
 # Container, Factories and the dependency injector 
-PSR Container built for PHP Fuse framework
+PSR Container built for MaplePHP framework
 
 Container, Factories and dependency injectors will help to make your PHP code more maintainable, flexible, and testable by reducing coupling between objects and centralizing the management of dependencies.
 
 ## Container
 Containers allowing you to easily create and retrieve objects that are needed throughout your application.
 ```php
-use PHPFuse\Container\tests\TestClasses\TestClass;
+use MaplePHP\Container\tests\TestClasses\TestClass;
 
 $container->set("test1", TestClass::class); // Will load TestClass
 $container->set("test2", TestClass::class, ["Test"]); // Will load TestClass and set argumnet to constructor
@@ -35,9 +35,9 @@ You can use the **Dependency injector** just like create any other container, as
 Take a look at this example
 
 ```php
-use PHPFuse\Container\tests\TestClasses\TestClass;
+use MaplePHP\Container\tests\TestClasses\TestClass;
 $container->set("uniqueKey", TestClass:class);
-// $container->set("uniqueKey", '\PHPFuse\Container\tests\Controllers\TestController'); // Same as above
+// $container->set("uniqueKey", '\MaplePHP\Container\tests\Controllers\TestController'); // Same as above
 $testController = $container->get("uniqueKey");
 echo $testController->start();
 
@@ -45,9 +45,9 @@ echo $testController->start();
 The above code will load **TestController** and auto initialize the class **Test**.
 
 ```php
-namespace PHPFuse\Container\tests\Controllers;
+namespace MaplePHP\Container\tests\Controllers;
 
-use PHPFuse\Container\tests\TestClasses\Test;
+use MaplePHP\Container\tests\TestClasses\Test;
 
 class TestController {
     

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PHPFuse\Container;
+namespace MaplePHP\Container;
 
 use ReflectionClass;
 use ReflectionMethod;
-use PHPFuse\Container\Exceptions\NotFoundException;
+use MaplePHP\Container\Exceptions\NotFoundException;
 
 class Reflection
 {

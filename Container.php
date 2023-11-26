@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace PHPFuse\Container;
+namespace MaplePHP\Container;
 
-use PHPFuse\Container\Interfaces\ContainerInterface;
-use PHPFuse\Container\Interfaces\FactoryInterface;
-use PHPFuse\DTO\Format\Arr;
-use PHPFuse\Container\Reflection;
-use PHPFuse\Container\Exceptions\NotFoundException;
-use PHPFuse\Container\Exceptions\ContainerException;
+use MaplePHP\Container\Interfaces\ContainerInterface;
+use MaplePHP\Container\Interfaces\FactoryInterface;
+use MaplePHP\DTO\Format\Arr;
+use MaplePHP\Container\Reflection;
+use MaplePHP\Container\Exceptions\NotFoundException;
+use MaplePHP\Container\Exceptions\ContainerException;
 
 class Container implements ContainerInterface, FactoryInterface
 {

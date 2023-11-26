@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPFuse\Container\Interfaces;
+namespace MaplePHP\Container\Interfaces;
 
 /**
  * No entry was found in the container.

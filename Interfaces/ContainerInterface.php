@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPFuse\Container\Interfaces;
+namespace MaplePHP\Container\Interfaces;
 
 /**
  * Describes the interface of a container that exposes methods to read its entries.

@@ -1,6 +1,6 @@
 <?php
 
-namespace PHPFuse\Container\Interfaces;
+namespace MaplePHP\Container\Interfaces;
 
 use Throwable;
 

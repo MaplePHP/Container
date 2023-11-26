@@ -1,9 +1,9 @@
 <?php
 
-namespace PHPFuse\Container\Exceptions;
+namespace MaplePHP\Container\Exceptions;
 
 use InvalidArgumentException;
-use PHPFuse\Container\Interfaces\ContainerExceptionInterface;
+use MaplePHP\Container\Interfaces\ContainerExceptionInterface;
 
 /**
  * Base interface representing a generic exception in a container.
