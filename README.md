@@ -7,16 +7,12 @@ Container, Factories and dependency injectors will help to make your PHP code mo
 ## Container
 Containers allowing you to easily create and retrieve objects that are needed throughout your application.
 ```php
-use MaplePHP\Container\tests\TestClasses\TestClass;
-
-$container->set("test1", TestClass::class); // Will load TestClass
-$container->set("test2", TestClass::class, ["Test"]); // Will load TestClass and set argumnet to constructor
-$container->set("test3", TestClass::class."::_get", ["Test 2"]); // Will load TestClass and static method named "_get" and set argumnet to that method
-
-echo $container->get("test1")->get(); // Will echo @TestClass->get()
-echo $container->get("test2", ["Test 2 (overwritten)"])->get();  // Will echo @TestClass->get("Test 2 (overwritten)")
-echo $container->get("test3"); // Will echo @TestClass::_get()
+$container->set("YourClass", \YourNamespace\To\YourClass::class); // Bind "YourClass" to container and dependency injector
+$yourClass = $container->get("YourClass")->get(); // Will return "YourClass"
+//$yourClass->yourClassMehthod();
 ```
+If the constructor of "YourClass" contains unresolved class arguments, the dependency injector will attempt to automatically locate them for you. Read more under the headline **dependency injector**.
+
 ## Factory
 Factories can be used to create new instances of objects, rather than instantiating them directly in your code. 
 ```php
@@ -35,24 +31,24 @@ You can use the **Dependency injector** just like create any other container, as
 Take a look at this example
 
 ```php
-use MaplePHP\Container\tests\TestClasses\TestClass;
-$container->set("uniqueKey", TestClass:class);
-// $container->set("uniqueKey", '\MaplePHP\Container\tests\Controllers\TestController'); // Same as above
-$testController = $container->get("uniqueKey");
-echo $testController->start();
+
+$container->set("YourClass", \YourNamespace\To\YourClass::class);
+$testService = $container->get("YourClass");
+echo $testService->start();
 
 ```
-The above code will load **TestController** and auto initialize the class **Test**.
+The above code will load **YourClass** and auto initialize the class **Test**.
 
 ```php
-namespace MaplePHP\Container\tests\Controllers;
+namespace YourNamespace\To;
 
-use MaplePHP\Container\tests\TestClasses\Test;
+use YourNamespace\ToTestClasses\Test;
 
-class TestController {
+class YourClass {
     
     private $test;
 
+    // Dependency injector will auto load "Test" class and the "Test" classes and so on.
     function __construct(Test $test) {
         $this->test = $test;
     }
