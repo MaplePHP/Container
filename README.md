@@ -7,6 +7,8 @@ Container, Factories and dependency injectors will help to make your PHP code mo
 ## Container
 Containers allowing you to easily create and retrieve objects that are needed throughout your application.
 ```php
+use MaplePHP\Container\Container;
+$container = new Container();
 $container->set("YourClass", \YourNamespace\To\YourClass::class); // Bind "YourClass" to container and dependency injector
 $yourClass = $container->get("YourClass")->get(); // Will return "YourClass"
 //$yourClass->yourClassMehthod();
