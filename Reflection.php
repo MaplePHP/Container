@@ -68,15 +68,18 @@ class Reflection
      */
     public function dependencyInjector(): object
     {
-        $params = $this->reflect->getConstructor()->getParameters();
-        $this->injectRecursion($params, $this->reflect->getName());
-
         $args = array();
-        foreach ($params as $param) {
-            if ($param->getType() && !$param->getType()->isBuiltin()) {
-                $classKey = $param->getType()->getName();
-                if (isset(self::$class[$classKey])) {
-                    $args[] = self::$class[$classKey];
+        $constructor = $this->reflect->getConstructor();
+        if(!is_null($constructor)) {
+            $params = $constructor->getParameters();
+            $this->injectRecursion($params, $this->reflect->getName());
+            
+            foreach ($params as $param) {
+                if ($param->getType() && !$param->getType()->isBuiltin()) {
+                    $classKey = $param->getType()->getName();
+                    if (isset(self::$class[$classKey])) {
+                        $args[] = self::$class[$classKey];
+                    }
                 }
             }
         }
