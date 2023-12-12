@@ -108,18 +108,14 @@ class EventHandler
         if (is_null($this->event)) {
             throw new \Exception("Event has not been initiated", 1);
         }
-
-
         foreach ($this->event as $key => $event) {
             if (is_array($event)) {
                 $select = key($event);
-                if (isset($this->bindable[$select])) {
-                    $this->getEvent($event[$select]);
-                }
+                $this->getEvent($event[$select]);
             } else {
                 $this->getEvent($event);
             }
-            // Execute event once!
+            // Stop propagate make sure event is executed once
             if ($this->stopPropagate) {
                 unset($this->event[$key]);
             }
