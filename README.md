@@ -1,8 +1,14 @@
 
+
 # Container, Factories and the dependency injector 
 PSR Container built for MaplePHP framework
 
 Container, Factories and dependency injectors will help to make your PHP code more maintainable, flexible, and testable by reducing coupling between objects and centralizing the management of dependencies.
+
+- [Container](#container)
+- [Factory](#factory)
+- [Dependency injector](#dependency-injector)
+- [Event handler](#event-handler)
 
 ## Container
 Containers allowing you to easily create and retrieve objects that are needed throughout your application.
@@ -25,7 +31,7 @@ $container->factory("factoryKey", function() {
 });
 echo $container->get("factoryKey"); // Will return TestClassC
 ```
-## The dependency injector
+## Dependency injector
 Dependency injection is a technique for managing dependencies between objects in an application. Instead of creating objects directly in your code, you can pass them in as dependencies when you instantiate an object. This makes your code more modular and easier to test, as you can easily swap out dependencies for mock objects or other implementations.
 
 You can use the **Dependency injector** just like create any other container, as long as you dont add arguments or try to access method, if you do that then it will automatically disable **Dependency injector**. It is design like this becouse it will load in all class reclusive into endlessly.
@@ -61,3 +67,71 @@ class YourClass {
     
 }
 ```
+
+## Event handler
+
+### Initiate
+```php
+use MaplePHP\Container\EventHandler;
+```
+
+### Example 1 - (Callable)
+```php
+$logger = new EventHandler();
+$logger->addHandler(new Logger());
+$logger->addEvent(function() {
+    var_dump("Executed in conjunction with logger every method");
+    // You could add a mail function that will send log message to you,
+});
+echo $logger->error("A error message to log");
+// Will log message AND execute the event
+```
+
+### Example 2 - (Bind to method)
+```php
+$logger = new EventHandler();
+$logger->addHandler(new Logger(), ["emergency", "alert", "critical"]);
+$logger->addEvent(function() {
+    var_dump("Executed in conjunction with logger event method");
+    // You could add a mail function that will send log message to you,
+});
+echo $logger->error("A error message to log");
+// Will only log message
+echo $logger->alert("A error message to log");
+// Will log message AND execute the event
+```
+
+### Example 3 - (Add service to handler)
+Set the namespace to the **EventInterface**.
+```php
+use MaplePHP\Container\Interfaces\EventInterface;
+```
+Then extend a class with implements to the interface **EventInterface** and add the method **resolve** to that class. I am using a "Anonymous Function" bellow as an example just to show that **EventInterface** is required, you can use a regular class.
+```php
+$callableFunction = new class implements EventInterface {
+
+    public function someMethod(string $what): string
+    {
+        return "Hello {$what}!";
+    }
+
+    // Resolve method will be executed in conjunction 
+    // with logger event method
+    public function resolve(): void
+    {
+        var_dump($this->someMethod("world"));
+    }
+};
+
+$logger = new EventHandler();
+$logger->addHandler(new Logger(), ["emergency", "alert", "critical"]);
+$logger->addEvent(function() {
+    var_dump("Executed in conjunction with logger event method");
+    // You could add a mail function that will send log message to you,
+});
+echo $logger->error("A error message to log");
+// Will only log message
+echo $logger->alert("A error message to log");
+// Will log message AND execute the event
+```
+
