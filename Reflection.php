@@ -15,8 +15,6 @@ class Reflection
     private $args;
     private $allowInterfaces = true;
     private $dependMethod = null;
-
-
     private static $class = array();
     private static $interfaceFactory;
     //private static $interfaceProtocol;
