@@ -14,6 +14,7 @@ class Reflection
     private $reflect;
     private $args;
     private $allowInterfaces = true;
+    private $dependMethod = null;
 
 
     private static $class = array();
@@ -66,14 +67,13 @@ class Reflection
      * Call dependency injector
      * @return object
      */
-    public function dependencyInjector(): object
+    public function dependencyInjector(?object $class = null, ?string $method = null): object
     {
         $args = array();
-        $constructor = $this->reflect->getConstructor();
+        $constructor = $this->setDependMethod($method, $this->reflect);
         if(!is_null($constructor)) {
             $params = $constructor->getParameters();
             $this->injectRecursion($params, $this->reflect->getName());
-            
             foreach ($params as $param) {
                 if ($param->getType() && !$param->getType()->isBuiltin()) {
                     $classKey = $param->getType()->getName();
@@ -83,7 +83,21 @@ class Reflection
                 }
             }
         }
+        if(!is_null($this->dependMethod)) {
+            $this->dependMethod = null;
+            return $constructor->invokeArgs($class, $args);
+        }
         return $this->reflect->newInstanceArgs($args);
+    }
+
+    function setDependMethod(?string $method, ReflectionClass $inst)
+    {
+        $method = ($method === "constructor") ? null : $method;
+        $this->dependMethod = $method;
+        if(is_null($this->dependMethod)) {
+            return $inst->getConstructor();
+        }
+        return $inst->getMethod($this->dependMethod);
     }
 
     /**
@@ -121,6 +135,7 @@ class Reflection
                 $inst = $this->initReclusiveReflect($classNameA, $fromClass);
                 $reflectParam = array();
                 $constructor = $inst->getConstructor();
+
                 if (!$inst->isInterface()) {
                     $reflectParam = ($constructor) ? $constructor->getParameters() : [];
                 }
