@@ -65,7 +65,7 @@ class Reflection
      * Call dependency injector
      * @return object
      */
-    public function dependencyInjector(?object $class = null, ?string $method = null): object
+    public function dependencyInjector(?object $class = null, ?string $method = null): mixed
     {
         $args = array();
         $constructor = $this->setDependMethod($method, $this->reflect);
