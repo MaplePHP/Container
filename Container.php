@@ -136,7 +136,7 @@ class Container implements ContainerInterface, FactoryInterface
             }
             return $this->getter[$identifier];
         } else {
-            throw new NotFoundException("Tring to get a container ({$identifier}) that does not exists", 1);
+            throw new NotFoundException("Trying to get a container ({$identifier}) that does not exists", 1);
         }
     }
 
