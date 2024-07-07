@@ -4,24 +4,28 @@ declare(strict_types=1);
 
 namespace MaplePHP\Container;
 
+use Exception;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionMethod;
 use MaplePHP\Container\Exceptions\NotFoundException;
 
 class Reflection
 {
-    private $method;
-    private $reflect;
-    private $args;
-    private $allowInterfaces = true;
-    private $dependMethod = null;
-    private static $class = array();
-    private static $interfaceFactory;
+    private ?string $method = null;
+    private ReflectionClass $reflect;
+    private ?array $args = null;
+    private bool $allowInterfaces = true;
+    private ?string $dependMethod = null;
+    private static array $class = array();
+    private static ?array $interfaceFactory = null;
+    //private static array $attr = [];
     //private static $interfaceProtocol;
 
     /**
-     * Start relection of a class or method
+     * Start reflection of a class or method
      * @param class-string|object $classData
+     * @throws ReflectionException
      */
     public function __construct(string|object $classData)
     {
@@ -31,7 +35,7 @@ class Reflection
                 $this->method = substr($classData, $pos + 2);
             }
             if (!class_exists($classData)) {
-                throw new NotFoundException("Could not find the class \"{$classData}\".", 1);
+                throw new NotFoundException("Could not find the class \"$classData\".", 1);
             }
         }
         $this->reflect = new ReflectionClass($classData);
@@ -64,6 +68,7 @@ class Reflection
     /**
      * Call dependency injector
      * @return object
+     * @throws ReflectionException|Exception
      */
     public function dependencyInjector(?object $class = null, ?string $method = null): mixed
     {
@@ -88,7 +93,14 @@ class Reflection
         return $this->reflect->newInstanceArgs($args);
     }
 
-    function setDependMethod(?string $method, ReflectionClass $inst)
+    /**
+     * Set dependent method
+     * @param string|null $method
+     * @param ReflectionClass $inst
+     * @return ReflectionMethod|null
+     * @throws ReflectionException
+     */
+    function setDependMethod(?string $method, ReflectionClass $inst): ?ReflectionMethod
     {
         $method = ($method === "constructor") ? null : $method;
         $this->dependMethod = $method;
@@ -100,29 +112,31 @@ class Reflection
 
     /**
      * This will return reflection if class exist or error pointing to file where error existed,
-     * @param  class-string $className
-     * @param  class-string $fromClass
+     * @param class-string $className
+     * @param class-string $fromClass
      * @return ReflectionClass
+     * @throws Exception
      */
     private function initReclusiveReflect(string $className, string $fromClass): ReflectionClass
     {
         try {
             return new ReflectionClass($className);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if (!class_exists($className)) {
                 throw new NotFoundException('Class "' . $className . '" does not exist in the class "' . $fromClass . '".', 1);
             } else {
-                throw new \Exception($e->getMessage() . '. You might want to check the file ' . $fromClass . '.', 1);
+                throw new Exception($e->getMessage() . '. You might want to check the file ' . $fromClass . '.', 1);
             }
         }
     }
 
     /**
-     * Recursion inject dependancies
-     * @param  array        $params
-     * @param  class-string $fromClass
-     * @param  array        $_args
+     * Recursion inject dependencies
+     * @param array $params
+     * @param class-string $fromClass
+     * @param array $_args
      * @return array
+     * @throws Exception
      */
     private function injectRecursion(array $params, string $fromClass, array $_args = array()): array
     {
@@ -141,7 +155,7 @@ class Reflection
                 if (count($reflectParam) > 0) {
                     $_args = $this->injectRecursion($reflectParam, $inst->getName(), $_args);
 
-                    // Will make it posible to set same instance in multiple nested classes
+                    // Will make it possible to set same instance in multiple nested classes
                     $_args = $this->insertMultipleNestedClasses($inst, $constructor, $classNameA, $reflectParam);
                 } else {
                     if ($inst->isInterface()) {
@@ -159,7 +173,7 @@ class Reflection
     }
 
     /**
-     * Will insert interface classes (the defualt classes)
+     * Will insert interface classes (the default classes)
      * @param  ReflectionClass $inst
      * @param  string          $classNameA
      * @return void
@@ -178,12 +192,13 @@ class Reflection
     }
 
     /**
-     * Will make it posible to set same instance in multiple nested classes
-     * @param  ReflectionClass       $inst
-     * @param  ReflectionMethod|null $constructor
-     * @param  string                $classNameA
-     * @param  array                 $reflectParam
+     * Will make it possible to set same instance in multiple nested classes
+     * @param ReflectionClass $inst
+     * @param ReflectionMethod|null $constructor
+     * @param string $classNameA
+     * @param array $reflectParam
      * @return array
+     * @throws ReflectionException
      */
     private function insertMultipleNestedClasses(
         ReflectionClass $inst,
@@ -207,13 +222,14 @@ class Reflection
     }
 
     /**
-     * Create a instance from reflection
-     * @param  ReflectionClass $inst
-     * @param  bool   $hasCon
-     * @param  array  $args
+     * Create an instance from reflection
+     * @param ReflectionClass $inst
+     * @param bool $hasCon
+     * @param array $args
      * @return  object
+     * @throws ReflectionException
      */
-    public function newInstance(ReflectionClass $inst, bool $hasCon, array $args)
+    public function newInstance(ReflectionClass $inst, bool $hasCon, array $args): object
     {
         if ($hasCon) {
             return $inst->newInstanceArgs($args);
@@ -222,7 +238,7 @@ class Reflection
     }
 
     /**
-     * Set argumnets to constructor or method (depending on how $data in new Reflection($data) is defined).
+     * Set arguments to constructor or method (depending on how $data in new Reflection($data) is defined).
      * IF method is set then method arguments will be passed, (the method will be treated as a static method)
      * @param array $array [description]
      */
@@ -244,8 +260,10 @@ class Reflection
     /**
      * Get the loaded container data
      * @return mixed
+     * @throws ReflectionException
+     * @throws Exception
      */
-    public function get()
+    public function get(): mixed
     {
         if (!is_null($this->method)) {
             $method = $this->reflect->getMethod($this->method);
@@ -253,7 +271,7 @@ class Reflection
                 return $this->getClass();
             }
             if ($method->isDestructor()) {
-                throw new \Exception("You can not set a Destructor as a container", 1);
+                throw new Exception("You can not set a Destructor as a container", 1);
             }
             $inst = $this->reflect->newInstanceWithoutConstructor();
 
@@ -266,7 +284,7 @@ class Reflection
         return $this->getClass();
     }
 
-    public static function getClassList()
+    public static function getClassList(): array
     {
         return self::$class;
     }
@@ -274,6 +292,7 @@ class Reflection
     /**
      * Load dependencyInjector / or just a container
      * @return object
+     * @throws ReflectionException
      */
     private function getClass(): object
     {
@@ -284,4 +303,23 @@ class Reflection
         }
         return $inst;
     }
+
+
+    /*
+    // Possible attribute snippet in working progress
+    function propagateAttr($reflectionClass, $class) {
+        foreach ($reflectionClass->getMethods() as $method) {
+            $attributes = $method->getAttributes(ListensTo::class);
+
+            foreach ($attributes as $attribute) {
+                $listener = $attribute->newInstance();
+                $name = $method->getName();
+                self::$attr[$name] = [
+                    $listener,
+                    $name
+                ];
+            }
+        }
+    }
+     */
 }
