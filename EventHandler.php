@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace MaplePHP\Container;
 
+use Exception;
 use MaplePHP\Container\Interfaces\EventInterface;
-use MaplePHP\Container\Reflection;
-use BadMethodCallException;
+use ReflectionException;
 
 /**
- * Create an event handler that will listent to a certain method in class
+ * Create an event handler that will listen to a certain method in class.
+ * Note: This will change to a valid PSR-14 event dispatcher library in the future.
  */
 class EventHandler
 {
@@ -21,7 +22,9 @@ class EventHandler
     /**
      * Add a class handler that you want to listen to
      * @param object|string $handler
+     * @param string|array|null $method
      * @return void
+     * @throws ReflectionException
      */
     public function addHandler(object|string $handler, string|array $method = null): void
     {
@@ -39,9 +42,11 @@ class EventHandler
 
     /**
      * Attach an event to a method that exist in handler
-     * @param string   $method
-     * @param callable $event
+     * @param callable|object|string $event
+     * @param string|null $bind
      * @return void
+     * @throws ReflectionException
+     * @throws Exception
      */
     public function addEvent(callable|object|string $event, ?string $bind = null): void
     {
@@ -53,7 +58,7 @@ class EventHandler
             }
 
             if(is_object($event) && !($event instanceof EventInterface)) {
-                throw new \Exception("Event object/class needs to be instance of \"EventInterface\"!", 1);
+                throw new Exception("Event object/class needs to be instance of \"EventInterface\"!", 1);
             }
         }
 
@@ -74,12 +79,12 @@ class EventHandler
         $this->stopPropagate = $stopPropagate;
     }
 
-
     /**
      * Release the listener
-     * @param  string $method
-     * @param  array  $args
+     * @param string $method
+     * @param array $args
      * @return mixed
+     * @throws Exception
      */
     public function __call(string $method, array $args): mixed
     {
@@ -108,10 +113,7 @@ class EventHandler
      */
     final protected function triggerEvents(): void
     {
-        if (is_null($this->event)) {
-            throw new \Exception("Event has not been initiated", 1);
-        }
-        foreach ($this->event as $key => $event) {
+        if (is_array($this->event)) foreach ($this->event as $key => $event) {
             if (is_array($event)) {
                 $select = key($event);
                 $this->getEvent($event[$select]);
