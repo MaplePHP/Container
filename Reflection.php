@@ -17,7 +17,7 @@ class Reflection
     private ?array $args = null;
     private bool $allowInterfaces = true;
     private ?string $dependMethod = null;
-    private static array $class = array();
+    private static array $class = [];
     private static ?array $interfaceFactory = null;
     //private static array $attr = [];
     //private static $interfaceProtocol;
@@ -72,7 +72,7 @@ class Reflection
      */
     public function dependencyInjector(?object $class = null, ?string $method = null): mixed
     {
-        $args = array();
+        $args = [];
         $constructor = $this->setDependMethod($method, $this->reflect);
         if(!is_null($constructor)) {
             $params = $constructor->getParameters();
@@ -100,7 +100,7 @@ class Reflection
      * @return ReflectionMethod|null
      * @throws ReflectionException
      */
-    function setDependMethod(?string $method, ReflectionClass $inst): ?ReflectionMethod
+    public function setDependMethod(?string $method, ReflectionClass $inst): ?ReflectionMethod
     {
         $method = ($method === "constructor") ? null : $method;
         $this->dependMethod = $method;
@@ -138,14 +138,14 @@ class Reflection
      * @return array
      * @throws Exception
      */
-    private function injectRecursion(array $params, string $fromClass, array $_args = array()): array
+    private function injectRecursion(array $params, string $fromClass, array $_args = []): array
     {
-        $_args = array();
+        $_args = [];
         foreach ($params as $param) {
             if ($param->getType() && !$param->getType()->isBuiltin()) {
                 $classNameA = $param->getType()->getName();
                 $inst = $this->initReclusiveReflect($classNameA, $fromClass);
-                $reflectParam = array();
+                $reflectParam = [];
                 $constructor = $inst->getConstructor();
 
                 if (!$inst->isInterface()) {
@@ -206,7 +206,7 @@ class Reflection
         string $classNameA,
         array $reflectParam
     ): array {
-        $args = array();
+        $args = [];
         foreach ($reflectParam as $reflectInstance) {
             if ($reflectInstance->getType() && !$reflectInstance->getType()->isBuiltin()) {
                 $classNameB = $reflectInstance->getType()->getName();

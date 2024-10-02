@@ -9,6 +9,5 @@ namespace MaplePHP\Container\Interfaces;
  */
 interface EventInterface
 {
-
     public function resolve(): void;
 }

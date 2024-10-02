@@ -74,7 +74,7 @@ class EventHandler
      * @param  bool   $stopPropagate
      * @return void
      */
-    public function stopPropagation(bool $stopPropagate): void 
+    public function stopPropagation(bool $stopPropagate): void
     {
         $this->stopPropagate = $stopPropagate;
     }
@@ -113,16 +113,18 @@ class EventHandler
      */
     final protected function triggerEvents(): void
     {
-        if (is_array($this->event)) foreach ($this->event as $key => $event) {
-            if (is_array($event)) {
-                $select = key($event);
-                $this->getEvent($event[$select]);
-            } else {
-                $this->getEvent($event);
-            }
-            // Stop propagate make sure event is executed once
-            if ($this->stopPropagate) {
-                unset($this->event[$key]);
+        if (is_array($this->event)) {
+            foreach ($this->event as $key => $event) {
+                if (is_array($event)) {
+                    $select = key($event);
+                    $this->getEvent($event[$select]);
+                } else {
+                    $this->getEvent($event);
+                }
+                // Stop propagate make sure event is executed once
+                if ($this->stopPropagate) {
+                    unset($this->event[$key]);
+                }
             }
         }
     }
@@ -133,7 +135,7 @@ class EventHandler
      * @return void
      */
     final protected function getEvent(callable|object $data): void
-    {   
+    {
         if(is_callable($data)) {
             $data();
         } else {

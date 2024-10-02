@@ -1,6 +1,7 @@
 {
     "name": "maplephp/container",
     "type": "library",
+    "version": "v1.1.2",
     "description": "Container, Factories and dependency injectors with full PSR-11 support.",
     "keywords": ["container", "psr11", "factories", "dependency injectors", "injectors"],
     "homepage": "https://wazabii.se",
@@ -17,7 +18,7 @@
     ],
     "require": {
         "php": ">=8.0",
-        "maplephp/dto": "^1.0"
+        "maplephp/dto": "^2.0"
     },
     "autoload": {
         "psr-4": {

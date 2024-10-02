@@ -159,7 +159,7 @@ class Container implements ContainerInterface, FactoryInterface
         if (str_contains($identifier, "*")) {
             $arr = Arr::value($this->services)->wildcardSearch($identifier)->get();
             if (count($arr) > 0) {
-                $new = array();
+                $new = [];
                 foreach ($arr as $key => $_unusedValues) {
                     $new[$key] = $this->get($key);
                 }
