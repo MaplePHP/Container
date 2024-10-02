@@ -1,7 +1,7 @@
 {
   "name": "maplephp/container",
   "type": "library",
-  "version": "v1.1.2",
+  "version": "v1.1.3",
   "description": "Container, Factories and dependency injectors with full PSR-11 support.",
   "keywords": [
     "container",
