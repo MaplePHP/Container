@@ -51,13 +51,13 @@ class EventHandler
     public function addEvent(callable|object|string $event, ?string $bind = null): void
     {
 
-        if(!is_callable($event)) {
-            if(is_string($event)) {
+        if (!is_callable($event)) {
+            if (is_string($event)) {
                 $reflect = new Reflection($event);
                 $event = $reflect->get();
             }
 
-            if(is_object($event) && !($event instanceof EventInterface)) {
+            if (is_object($event) && !($event instanceof EventInterface)) {
                 throw new Exception("Event object/class needs to be instance of \"EventInterface\"!", 1);
             }
         }
@@ -136,7 +136,7 @@ class EventHandler
      */
     final protected function getEvent(callable|object $data): void
     {
-        if(is_callable($data)) {
+        if (is_callable($data)) {
             $data();
         } else {
             $data->resolve();

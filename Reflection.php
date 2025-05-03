@@ -9,6 +9,9 @@ use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
 use MaplePHP\Container\Exceptions\NotFoundException;
+use ReflectionNamedType;
+use ReflectionParameter;
+use ReflectionUnionType;
 
 class Reflection
 {
@@ -74,19 +77,23 @@ class Reflection
     {
         $args = [];
         $constructor = $this->setDependMethod($method, $this->reflect);
-        if(!is_null($constructor)) {
+        if (!is_null($constructor)) {
             $params = $constructor->getParameters();
             $this->injectRecursion($params, $this->reflect->getName());
             foreach ($params as $param) {
-                if ($param->getType() && !$param->getType()->isBuiltin()) {
-                    $classKey = $param->getType()->getName();
+                if (!$this->isBuiltin($param)) {
+                    $classKey = $this->getClassNameFromParam($param);
+                    if (!$classKey) {
+                        continue;
+                    }
+
                     if (isset(self::$class[$classKey])) {
                         $args[] = self::$class[$classKey];
                     }
                 }
             }
         }
-        if(!is_null($this->dependMethod)) {
+        if (!is_null($this->dependMethod)) {
             $this->dependMethod = null;
             return $constructor->invokeArgs($class, $args);
         }
@@ -104,10 +111,22 @@ class Reflection
     {
         $method = ($method === "constructor") ? null : $method;
         $this->dependMethod = $method;
-        if(is_null($this->dependMethod)) {
+        if (is_null($this->dependMethod)) {
             return $inst->getConstructor();
         }
         return $inst->getMethod($this->dependMethod);
+    }
+
+    /**
+     * Check if a parameter type is built-in
+     *
+     * @param ReflectionParameter $param Parameter to check
+     * @return bool Returns true if a parameter type is not built-in, false otherwise
+     */
+    private function isBuiltin(ReflectionParameter $param): bool
+    {
+        $type = $param->getType();
+        return ($type instanceof ReflectionNamedType && $type->isBuiltin());
     }
 
     /**
@@ -142,8 +161,11 @@ class Reflection
     {
         $_args = [];
         foreach ($params as $param) {
-            if ($param->getType() && !$param->getType()->isBuiltin()) {
-                $classNameA = $param->getType()->getName();
+            if (!$this->isBuiltin($param)) {
+                $classNameA = $this->getClassNameFromParam($param);
+                if (!$classNameA) {
+                    continue; // skip if class name couldn't be resolved
+                }
                 $inst = $this->initReclusiveReflect($classNameA, $fromClass);
                 $reflectParam = [];
                 $constructor = $inst->getConstructor();
@@ -171,6 +193,42 @@ class Reflection
         }
         return $_args;
     }
+
+    /**
+     * Extracts the class name from a ReflectionParameter object
+     * Handles named types, union types, and intersection types (PHP 8.1+)
+     * Returns the first non-built-in type name found or null if none exists
+     *
+     * @param ReflectionParameter $param The reflection parameter to analyze
+     * @return string|null The extracted class name or null if no class name is found
+     */
+    private function getClassNameFromParam(ReflectionParameter $param): ?string
+    {
+        $type = $param->getType();
+
+        if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
+            return $type->getName();
+        }
+
+        if ($type instanceof ReflectionUnionType) {
+            foreach ($type->getTypes() as $innerType) {
+                if ($innerType instanceof ReflectionNamedType && !$innerType->isBuiltin()) {
+                    return $innerType->getName();
+                }
+            }
+        }
+
+        // Optionally handle ReflectionIntersectionType for PHP 8.1+
+        if (PHP_VERSION_ID >= 80100 && $type instanceof ReflectionIntersectionType) {
+            foreach ($type->getTypes() as $innerType) {
+                if ($innerType instanceof ReflectionNamedType && !$innerType->isBuiltin()) {
+                    return $innerType->getName(); // or return all names if needed
+                }
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Will insert interface classes (the default classes)
@@ -208,7 +266,7 @@ class Reflection
     ): array {
         $args = [];
         foreach ($reflectParam as $reflectInstance) {
-            if ($reflectInstance->getType() && !$reflectInstance->getType()->isBuiltin()) {
+            if (!$this->isBuiltin($reflectInstance)) {
                 $classNameB = $reflectInstance->getType()->getName();
                 if (isset(self::$class[$classNameB])) {
                     $args[] = self::$class[$classNameB];
