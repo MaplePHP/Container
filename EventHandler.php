@@ -62,7 +62,7 @@ class EventHandler
             }
         }
 
-        if (is_null($bind)) {
+        if ($bind === null) {
             $this->event[] = $event;
         } else {
             $this->event[] = [$bind => $event];
@@ -95,7 +95,7 @@ class EventHandler
                 throw new BadMethodCallException("The method \"".$method."\" does not exist in the class (" . $handler[0]::class . ")", 1);
             }
             */
-            if (is_null($handler[1][0]) || in_array($method, $handler[1])) {
+            if ($handler[1][0] === null || in_array($method, $handler[1])) {
                 $this->bindable[$method] = $method;
             }
             $data = call_user_func_array([$handler[0], $method], $args);

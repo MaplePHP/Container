@@ -77,7 +77,7 @@ class Reflection
     {
         $args = [];
         $constructor = $this->setDependMethod($method, $this->reflect);
-        if (!is_null($constructor)) {
+        if ($constructor !== null) {
             $params = $constructor->getParameters();
             $this->injectRecursion($params, $this->reflect->getName());
             foreach ($params as $param) {
@@ -93,7 +93,7 @@ class Reflection
                 }
             }
         }
-        if (!is_null($this->dependMethod)) {
+        if ($this->dependMethod !== null) {
             $this->dependMethod = null;
             return $constructor->invokeArgs($class, $args);
         }
@@ -111,7 +111,7 @@ class Reflection
     {
         $method = ($method === "constructor") ? null : $method;
         $this->dependMethod = $method;
-        if (is_null($this->dependMethod)) {
+        if ($this->dependMethod === null) {
             return $inst->getConstructor();
         }
         return $inst->getMethod($this->dependMethod);
@@ -239,7 +239,7 @@ class Reflection
     private function insertInterfaceClasses(ReflectionClass $inst, string $classNameA): void
     {
         if ($this->allowInterfaces) {
-            if (!is_null(self::$interfaceFactory)) {
+            if (self::$interfaceFactory !== null) {
                 foreach (self::$interfaceFactory as $call) {
                     self::$class[$classNameA] = $call($inst->getShortName(), $classNameA, $inst);
                 }
@@ -323,7 +323,7 @@ class Reflection
      */
     public function get(): mixed
     {
-        if (!is_null($this->method)) {
+        if ($this->method !== null) {
             $method = $this->reflect->getMethod($this->method);
             if ($method->isConstructor()) {
                 return $this->getClass();
@@ -333,7 +333,7 @@ class Reflection
             }
             $inst = $this->reflect->newInstanceWithoutConstructor();
 
-            if (!is_null($this->args)) {
+            if ($this->args !== null) {
                 return $method->invokeArgs($inst, $this->args);
             } else {
                 return $method->invoke($inst);
@@ -354,7 +354,7 @@ class Reflection
      */
     private function getClass(): object
     {
-        if (!is_null($this->args)) {
+        if ($this->args !== null) {
             $inst = $this->reflect->newInstanceArgs($this->args);
         } else {
             $inst = $this->dependencyInjector();
